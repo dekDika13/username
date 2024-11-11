@@ -1,0 +1,5 @@
+aiohttp
+Flask
+flask_cors
+requests
+python-telegram-bot

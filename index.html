@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram Username Checker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        .form-container {
+            max-width: 500px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .results-container {
+            margin-top: 20px;
+        }
+
+        .result {
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+        }
+
+        .available {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .loading {
+            font-style: italic;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="form-container">
+        <h1>Telegram Username Checker</h1>
+        <label for="usernames">Enter Usernames (comma-separated):</label>
+        <input type="text" id="usernames" placeholder="Example: username1, username2, username3"
+            style="width: 100%; padding: 8px; margin-top: 10px;">
+        <button onclick="checkUsernames()" style="margin-top: 10px; padding: 10px; width: 100%;">Check
+            Availability</button>
+
+        <div class="results-container" id="results"></div>
+    </div>
+
+    <script>
+        function checkUsernames() {
+            const usernamesInput = document.getElementById("usernames").value;
+            const usernames = usernamesInput.split(",").map(name => name.trim()).filter(name => name !== "");
+
+            if (usernames.length === 0) {
+                alert("Please enter at least one username.");
+                return;
+            }
+
+            // Tampilkan loading state
+            const resultsContainer = document.getElementById("results");
+            resultsContainer.innerHTML = '<p class="loading">Checking availability, please wait...</p>';
+
+            fetch('http://127.0.0.1:8090/check-usernames', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ usernames })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    resultsContainer.innerHTML = ''; // Bersihkan loading state
+
+                    // Tampilkan hanya hasil untuk username yang tersedia
+                    data.forEach(result => {
+                        if (result.available) {
+                            const resultDiv = document.createElement("div");
+                            resultDiv.classList.add("result", "available");
+                            resultDiv.textContent = `${result.username}: ${result.message}`;
+                            resultsContainer.appendChild(resultDiv);
+                        }
+                    });
+
+                    if (resultsContainer.innerHTML === '') {
+                        resultsContainer.innerHTML = '<p class="taken">No available usernames found.</p>';
+                    }
+                })
+                .catch(error => {
+                    resultsContainer.innerHTML = `<p class="taken">Error: ${error.message}</p>`;
+                    console.error("Error:", error);
+                });
+        }
+    </script>
+
+</body>
+
+</html>
